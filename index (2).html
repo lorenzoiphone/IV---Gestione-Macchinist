@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IV - Gestione Macchinisti</title>
+    <style>
+        /* Stile ViaggiaTreno per Macchinisti */
+        :root {
+            --vt-blue: #0055a4;
+            --vt-light-blue: #0078d7;
+            --vt-red: #e4002b;
+            --vt-green: #00a650;
+            --vt-orange: #ff6b00;
+            --vt-gray: #f5f5f5;
+            --vt-dark-gray: #666666;
+            --vt-gold: #ffd700;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--vt-blue) 0%, var(--vt-light-blue) 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .vt-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        
+        /* Header ViaggiaTreno */
+        .vt-header {
+            background: var(--vt-blue);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--vt-red);
+        }
+        
+        .vt-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .vt-logo-icon {
+            background: var(--vt-red);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 20px;
+        }
+        
+        .vt-user-area {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        /* Navigation ViaggiaTreno */
+        .vt-nav {
+            background: var(--vt-light-blue);
+            padding: 0 20px;
+        }
+        
+        .vt-nav-menu {
+            display: flex;
+            list-style: none;
+        }
+        
+        .vt-nav-item {
+            padding: 15px 20px;
+            color: white;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .vt-nav-item.active {
+            background: rgba(255,255,255,0.1);
+            border-bottom-color: var(--vt-gold);
+        }
+        
+        .vt-nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        /* Main Content */
+        .vt-main {
+            padding: 20px;
+            background: var(--vt-gray);
+            min-height: calc(100vh - 140px);
+        }
+        
+        /* Dashboard Macchinisti */
+        .vt-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .vt-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .vt-stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--vt-blue);
+            text-align: center;
+        }
+        
+        .vt-stat-card.warning { border-left-color: var(--vt-orange); }
+        .vt-stat-card.danger { border-left-color: var(--vt-red); }
+        .vt-stat-card.success { border-left-color: var(--vt-green); }
+        
+        .vt-stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--vt-blue);
+            margin-bottom: 5px;
+        }
+        
+        .vt-stat-label {
+            font-size: 14px;
+            color: var(--vt-dark-gray);
+            font-weight: 500;
+        }
+        
+        /* Driver Cards */
+        .vt-drivers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .vt-driver-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .vt-driver-card.active {
+            border-color: var(--vt-green);
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+        }
+        
+        .vt-driver-card.resting {
+            border-color: var(--vt-orange);
+            background: linear-gradient(135deg, #fffbf0 0%, #fef5e7 100%);
+        }
+        
+        .vt-driver-card.unavailable {
+            border-color: var(--vt-red);
+            background: linear-gradient(135deg, #fff8f8 0%, #f5e8e8 100%);
+        }
+        
+        .vt-driver-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        
+        .vt-driver-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .vt-driver-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--vt-blue);
+        }
+        
+        .vt-driver-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .vt-badge-active { background: var(--vt-green); }
+        .vt-badge-resting { background: var(--vt-orange); }
+        .vt-badge-unavailable { background: var(--vt-red); }
+        
+        .vt-driver-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .vt-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .vt-info-label {
+            font-size: 11px;
+            color: var(--vt-dark-gray);
+            font-weight: 500;
+        }
+        
+        .vt-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--vt-dark-gray);
+        }
+        
+        .vt-driver-train {
+            background: var(--vt-gray);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .vt-train-number {
+            font-weight: bold;
+            color: var(--vt-blue);
+            margin-bottom: 5px;
+        }
+        
+        .vt-train-route {
+            font-size: 12px;
+            color: var(--vt-dark-gray);
+        }
+        
+        .vt-driver-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .vt-button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .vt-button.primary {
+            background: var(--vt-blue);
+            color: white;
+        }
+        
+        .vt-button.success {
+            background: var(--vt-green);
+            color: white;
+        }
+        
+        .vt-button.warning {
+            background: var(--vt-orange);
+            color: white;
+        }
+        
+        .vt-button.danger {
+            background: var(--vt-red);
+            color: white;
+        }
+        
+        .vt-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* Right Panel */
+        .vt-right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .vt-panel-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .vt-panel-title {
+            color: var(--vt-blue);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        /* Quick Actions */
+        .vt-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .vt-action-card {
+            background: var(--vt-gray);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .vt-action-card:hover {
+            border-color: var(--vt-blue);
+            transform: translateY(-2px);
+        }
+        
+        .vt-action-icon {
+            font-size: 24px;
+            color: var(--vt-blue);
+            margin-bottom: 8px;
+        }
+        
+        .vt-action-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--vt-dark-gray);
+        }
+        
+        /* Alerts */
+        .vt-alert-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .vt-alert-item {
+            padding: 10px;
+            border-left: 4px solid var(--vt-orange);
+            background: #fffaf0;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .vt-alert-item.critical {
+            border-left-color: var(--vt-red);
+            background: #fff0f0;
+        }
+        
+        .vt-alert-item.info {
+            border-left-color: var(--vt-blue);
+            background: #f0f8ff;
+        }
+        
+        /* Search Section */
+        .vt-search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .vt-search-title {
+            color: var(--vt-blue);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .vt-search-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .vt-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .vt-label {
+            font-weight: 600;
+            color: var(--vt-dark-gray);
+            font-size: 12px;
+        }
+        
+        .vt-input, .vt-select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .vt-input:focus, .vt-select:focus {
+            outline: none;
+            border-color: var(--vt-blue);
+        }
+        
+        /* Timeline */
+        .vt-timeline {
+            margin: 20px 0;
+        }
+        
+        .vt-timeline-title {
+            color: var(--vt-blue);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .vt-timeline-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border-left: 4px solid var(--vt-green);
+            margin-bottom: 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .vt-timeline-item.delayed {
+            border-left-color: var(--vt-orange);
+            background: #fffaf0;
+        }
+        
+        .vt-timeline-time {
+            font-weight: bold;
+            min-width: 70px;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        
+        .vt-timeline-station {
+            flex: 1;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .vt-timeline-delay {
+            background: var(--vt-orange);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        /* Modal */
+        .vt-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .vt-modal.active {
+            display: flex;
+        }
+        
+        .vt-modal-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .vt-modal-header {
+            background: var(--vt-blue);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .vt-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .vt-modal-body {
+            padding: 20px;
+        }
+        
+        .vt-modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Notification */
+        .vt-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .vt-notification.show {
+            transform: translateX(0);
+        }
+        
+        .vt-notification.success { background: var(--vt-green); }
+        .vt-notification.error { background: var(--vt-red); }
+        .vt-notification.warning { background: var(--vt-orange); }
+        .vt-notification.info { background: var(--vt-blue); }
+        
+        @media (max-width: 1024px) {
+            .vt-dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .vt-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .vt-drivers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .vt-search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="vt-container">
+        <!-- Header ViaggiaTreno -->
+        <header class="vt-header">
+            <div class="vt-logo">
+                <div class="vt-logo-icon">
+                    <i class="fas fa-train"></i>
+                </div>
+                Gestione Macchinisti
+            </div>
+            <div class="vt-user-area">
+                <div>Centro Operativo Macchinisti</div>
+                <div id="currentTime">00:00</div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="vt-nav">
+            <ul class="vt-nav-menu">
+                <li class="vt-nav-item active" onclick="DriverSystem.switchView('dashboard')">Dashboard</li>
+                <li class="vt-nav-item" onclick="DriverSystem.switchView('turni')">Turni di Lavoro</li>
+                <li class="vt-nav-item" onclick="DriverSystem.switchView('treni')">Assegnazione Treni</li>
+                <li class="vt-nav-item" onclick="DriverSystem.switchView('disponibilita')">Disponibilità</li>
+                <li class="vt-nav-item" onclick="DriverSystem.switchView('report')">Report Macchinisti</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="vt-main">
+            <!-- Dashboard View -->
+            <div id="dashboard" class="vt-view active">
+                <div class="vt-search-section">
+                    <h2 class="vt-search-title">
+                        <i class="fas fa-search"></i>
+                        Cerca Treno per Assegnazione
+                    </h2>
+                    <div class="vt-search-form">
+                        <div class="vt-form-group">
+                            <label class="vt-label">Numero Treno</label>
+                            <input type="text" class="vt-input" id="trainNumber" placeholder="Es: 9512">
+                        </div>
+                        <div class="vt-form-group">
+                            <label class="vt-label">Data Corsa</label>
+                            <input type="date" class="vt-input" id="trainDate">
+                        </div>
+                        <button class="vt-button primary" onclick="DriverSystem.searchTrain()">
+                            <i class="fas fa-search"></i>
+                            Cerca Treno
+                        </button>
+                    </div>
+                </div>
+
+                <div class="vt-dashboard">
+                    <div>
+                        <!-- Statistics -->
+                        <div class="vt-stats-grid">
+                            <div class="vt-stat-card">
+                                <div class="vt-stat-value" id="totalDrivers">24</div>
+                                <div class="vt-stat-label">MACCHINISTI TOTALI</div>
+                            </div>
+                            <div class="vt-stat-card success">
+                                <div class="vt-stat-value" id="activeDrivers">18</div>
+                                <div class="vt-stat-label">IN SERVIZIO</div>
+                            </div>
+                            <div class="vt-stat-card warning">
+                                <div class="vt-stat-value" id="availableDrivers">6</div>
+                                <div class="vt-stat-label">DISPONIBILI</div>
+                            </div>
+                        </div>
+
+                        <!-- Drivers Grid -->
+                        <div class="vt-drivers-grid" id="driversGrid">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Right Panel -->
+                    <div class="vt-right-panel">
+                        <!-- Quick Actions -->
+                        <div class="vt-panel-section">
+                            <h3 class="vt-panel-title">
+                                <i class="fas fa-bolt"></i>
+                                Azioni Rapide
+                            </h3>
+                            <div class="vt-actions-grid">
+                                <div class="vt-action-card" onclick="DriverSystem.autoAssign()">
+                                    <div class="vt-action-icon">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div class="vt-action-label">Assegnazione Auto</div>
+                                </div>
+                                <div class="vt-action-card" onclick="DriverSystem.showShiftModal()">
+                                    <div class="vt-action-icon">
+                                        <i class="fas fa-calendar-plus"></i>
+                                    </div>
+                                    <div class="vt-action-label">Nuovo Turno</div>
+                                </div>
+                                <div class="vt-action-card" onclick="DriverSystem.generateReport()">
+                                    <div class="vt-action-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <div class="vt-action-label">Genera Report</div>
+                                </div>
+                                <div class="vt-action-card" onclick="DriverSystem.emergencyProtocol()">
+                                    <div class="vt-action-icon">
+                                        <i class="fas fa-first-aid"></i>
+                                    </div>
+                                    <div class="vt-action-label">Emergenza</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alerts -->
+                        <div class="vt-panel-section">
+                            <h3 class="vt-panel-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Allerta Macchinisti
+                            </h3>
+                            <div class="vt-alert-list" id="alertsList">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+
+                        <!-- Train Info -->
+                        <div class="vt-panel-section">
+                            <h3 class="vt-panel-title">
+                                <i class="fas fa-train"></i>
+                                Prossimi Treni
+                            </h3>
+                            <div id="nextTrains">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other views would be implemented similarly -->
+        </main>
+    </div>
+
+    <!-- Shift Assignment Modal -->
+    <div id="shiftModal" class="vt-modal">
+        <div class="vt-modal-content">
+            <div class="vt-modal-header">
+                <h3 class="vt-modal-title">Assegnazione Turno Macchinista</h3>
+                <button class="vt-button danger" onclick="DriverSystem.hideShiftModal()" style="padding: 5px 10px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="vt-modal-body">
+                <div class="vt-form-group">
+                    <label class="vt-label">Macchinista</label>
+                    <select class="vt-select" id="shiftDriver">
+                        <option value="">Seleziona macchinista...</option>
+                    </select>
+                </div>
+                <div class="vt-form-group">
+                    <label class="vt-label">Treno</label>
+                    <select class="vt-select" id="shiftTrain">
+                        <option value="">Seleziona treno...</option>
+                    </select>
+                </div>
+                <div class="vt-form-group">
+                    <label class="vt-label">Data e Ora Partenza</label>
+                    <input type="datetime-local" class="vt-input" id="shiftStart">
+                </div>
+                <div class="vt-form-group">
+                    <label class="vt-label">Data e Ora Arrivo</label>
+                    <input type="datetime-local" class="vt-input" id="shiftEnd">
+                </div>
+            </div>
+            <div class="vt-modal-footer">
+                <button class="vt-button success" onclick="DriverSystem.assignShift()">
+                    <i class="fas fa-save"></i>
+                    Assegna Turno
+                </button>
+                <button class="vt-button warning" onclick="DriverSystem.hideShiftModal()">
+                    <i class="fas fa-times"></i>
+                    Annulla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification System -->
+    <div id="vtNotification" class="vt-notification"></div>
+
+    <script>
+        // Sistema Gestione Macchinisti
+        class DriverSystem {
+            static drivers = [];
+            static trains = [];
+            static currentView = 'dashboard';
+
+            static initialize() {
+                this.loadSampleData();
+                this.updateCurrentTime();
+                setInterval(() => this.updateCurrentTime(), 1000);
+                setInterval(() => this.autoRefresh(), 30000);
+                
+                // Set today's date as default
+                document.getElementById('trainDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            static loadSampleData() {
+                // Sample drivers data
+                this.drivers = [
+                    {
+                        id: 'D001',
+                        name: 'Marco Rossi',
+                        badge: 'MR8452',
+                        status: 'active',
+                        currentTrain: 'FR 9512',
+                        route: 'Roma Termini - Milano Centrale',
+                        hoursWorked: 6,
+                        maxHours: 9,
+                        location: 'Roma Termini',
+                        nextBreak: '14:30',
+                        qualifications: ['Frecciarossa', 'Intercity', 'Regionale']
+                    },
+                    {
+                        id: 'D002',
+                        name: 'Anna Bianchi',
+                        badge: 'AB7231',
+                        status: 'active',
+                        currentTrain: 'IC 567',
+                        route: 'Napoli Centrale - Torino PN',
+                        hoursWorked: 4,
+                        maxHours: 9,
+                        location: 'Firenze SMN',
+                        nextBreak: '16:45',
+                        qualifications: ['Frecciarossa', 'Italo', 'Intercity']
+                    },
+                    {
+                        id: 'D003',
+                        name: 'Luigi Verdi',
+                        badge: 'LV6345',
+                        status: 'resting',
+                        currentTrain: null,
+                        route: null,
+                        hoursWorked: 8,
+                        maxHours: 9,
+                        location: 'Deposito Milano',
+                        nextBreak: 'Disponibile',
+                        qualifications: ['Frecciarossa', 'Intercity', 'Mercantile']
+                    },
+                    {
+                        id: 'D004',
+                        name: 'Giulia Neri',
+                        badge: 'GN5123',
+                        status: 'available',
+                        currentTrain: null,
+                        route: null,
+                        hoursWorked: 2,
+                        maxHours: 9,
+                        location: 'Stazione Bologna',
+                        nextBreak: 'Disponibile',
+                        qualifications: ['Italo', 'Regionale', 'Intercity']
+                    },
+                    {
+                        id: 'D005',
+                        name: 'Paolo Romano',
+                        badge: 'PR4231',
+                        status: 'active',
+                        currentTrain: 'AV 8841',
+                        route: 'Venezia Mestre - Roma Termini',
+                        hoursWorked: 7,
+                        maxHours: 9,
+                        location: 'Bologna Centrale',
+                        nextBreak: '15:20',
+                        qualifications: ['Frecciarossa', 'Italo']
+                    }
+                ];
+
+                // Sample trains data
+                this.trains = [
+                    { number: 'FR 9512', type: 'Frecciarossa', route: 'Roma Termini - Milano Centrale', departure: '14:30', status: 'on_time' },
+                    { number: 'IC 567', type: 'Intercity', route: 'Napoli Centrale - Torino PN', departure: '15:45', status: 'delayed' },
+                    { number: 'AV 8841', type: 'Italo', route: 'Venezia Mestre - Roma Termini', departure: '16:20', status: 'on_time' },
+                    { number: 'REG 2341', type: 'Regionale', route: 'Firenze SMN - Bologna Centrale', departure: '17:30', status: 'on_time' }
+                ];
+
+                this.updateDashboard();
+            }
+
+            static switchView(viewName) {
+                document.querySelectorAll('.vt-nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                document.querySelectorAll('.vt-view').forEach(view => {
+                    view.classList.remove('active');
+                });
+
+                document.getElementById(viewName).classList.add('active');
+                this.currentView = viewName;
+            }
+
+            static updateDashboard() {
+                this.updateStatistics();
+                this.updateDriversGrid();
+                this.updateAlerts();
+                this.updateNextTrains();
+            }
+
+            static updateStatistics() {
+                const totalDrivers = this.drivers.length;
+                const activeDrivers = this.drivers.filter(d => d.status === 'active').length;
+                const availableDrivers = this.drivers.filter(d => d.status === 'available').length;
+
+                document.getElementById('totalDrivers').textContent = totalDrivers;
+                document.getElementById('activeDrivers').textContent = activeDrivers;
+                document.getElementById('availableDrivers').textContent = availableDrivers;
+            }
+
+            static updateDriversGrid() {
+                const container = document.getElementById('driversGrid');
+                
+                container.innerHTML = this.drivers.map(driver => `
+                    <div class="vt-driver-card ${driver.status}">
+                        <div class="vt-driver-header">
+                            <div class="vt-driver-name">${driver.name}</div>
+                            <div class="vt-driver-badge vt-badge-${driver.status}">
+                                ${driver.status === 'active' ? 'IN SERVIZIO' : 
+                                  driver.status === 'resting' ? 'IN PAUSA' : 'DISPONIBILE'}
+                            </div>
+                        </div>
+                        
+                        <div class="vt-driver-info">
+                            <div class="vt-info-item">
+                                <div class="vt-info-label">Matricola</div>
+                                <div class="vt-info-value">${driver.badge}</div>
+                            </div>
+                            <div class="vt-info-item">
+                                <div class="vt-info-label">Ore Lavorate</div>
+                                <div class="vt-info-value">${driver.hoursWorked}h / ${driver.maxHours}h</div>
+                            </div>
+                            <div class="vt-info-item">
+                                <div class="vt-info-label">Posizione</div>
+                                <div class="vt-info-value">${driver.location}</div>
+                            </div>
+                            <div class="vt-info-item">
+                                <div class="vt-info-label">Prossima Pausa</div>
+                                <div class="vt-info-value">${driver.nextBreak}</div>
+                            </div>
+                        </div>
+                        
+                        ${driver.currentTrain ? `
+                            <div class="vt-driver-train">
+                                <div class="vt-train-number">${driver.currentTrain}</div>
+                                <div class="vt-train-route">${driver.route}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="vt-driver-actions">
+                            ${driver.status === 'available' ? `
+                                <button class="vt-button primary" onclick="DriverSystem.assignTrain('${driver.id}')">
+                                    <i class="fas fa-train"></i>Assegna Treno
+                                </button>
+                            ` : ''}
+                            
+                            ${driver.status === 'active' ? `
+                                <button class="vt-button warning" onclick="DriverSystem.startBreak('${driver.id}')">
+                                    <i class="fas fa-coffee"></i>Pausa
+                                </button>
+                                <button class="vt-button success" onclick="DriverSystem.endShift('${driver.id}')">
+                                    <i class="fas fa-flag-checkered"></i>Fine Turno
+                                </button>
+                            ` : ''}
+                            
+                            ${driver.status === 'resting' ? `
+                                <button class="vt-button primary" onclick="DriverSystem.endBreak('${driver.id}')">
+                                    <i class="fas fa-play"></i>Riprendi
+                                </button>
+                            ` : ''}
+                            
+                            <button class="vt-button" style="background: var(--vt-dark-gray); color: white;" 
+                                    onclick="DriverSystem.showDriverDetails('${driver.id}')">
+                                <i class="fas fa-info"></i>Dettagli
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            static updateAlerts() {
+                const container = document.getElementById('alertsList');
+                const alerts = [];
+                
+                // Check for drivers approaching max hours
+                this.drivers.forEach(driver => {
+                    if (driver.hoursWorked >= driver.maxHours - 1) {
+                        alerts.push({
+                            type: 'critical',
+                            message: `${driver.name} raggiungerà limite ore tra ${driver.maxHours - driver.hoursWorked}h`
+                        });
+                    } else if (driver.hoursWorked >= driver.maxHours - 2) {
+                        alerts.push({
+                            type: 'warning',
+                            message: `${driver.name} vicino al limite ore (${driver.hoursWorked}h)`
+                        });
+                    }
+                });
+                
+                // Check for available drivers
+                const availableCount = this.drivers.filter(d => d.status === 'available').length;
+                if (availableCount === 0) {
+                    alerts.push({
+                        type: 'warning',
+                        message: 'Nessun macchinista disponibile'
+                    });
+                }
+                
+                container.innerHTML = alerts.map(alert => `
+                    <div class="vt-alert-item ${alert.type}">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${alert.message}
+                    </div>
+                `).join('');
+            }
+
+            static updateNextTrains() {
+                const container = document.getElementById('nextTrains');
+                const nextTrains = this.trains.slice(0, 3);
+                
+                container.innerHTML = nextTrains.map(train => `
+                    <div class="vt-timeline-item ${train.status === 'delayed' ? 'delayed' : ''}">
+                        <div class="vt-timeline-time">${train.departure}</div>
+                        <div class="vt-timeline-station">${train.number}</div>
+                        ${train.status === 'delayed' ? `<div class="vt-timeline-delay">+15min</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            static searchTrain() {
+                const trainNumber = document.getElementById('trainNumber').value;
+                
+                if (!trainNumber) {
+                    this.showNotification('Inserire il numero del treno', 'error');
+                    return;
+                }
+                
+                this.showNotification(`Ricerca treno ${trainNumber}...`, 'info');
+                
+                // Simulate API call
+                setTimeout(() => {
+                    const mockTrain = {
+                        number: trainNumber,
+                        type: 'Frecciarossa',
+                        route: 'Roma Termini - Milano Centrale',
+                        departure: '14:30',
+                        status: 'on_time',
+                        platform: '7',
+                        needsDriver: true
+                    };
+                    
+                    this.showNotification(`Treno ${trainNumber} trovato - Assegnare macchinista`, 'success');
+                    
+                    // Auto-assign if train needs driver
+                    if (mockTrain.needsDriver) {
+                        this.autoAssignToTrain(mockTrain);
+                    }
+                }, 1500);
+            }
+
+            static autoAssign() {
+                const availableDrivers = this.drivers.filter(d => d.status === 'available');
+                const trainsNeedingDrivers = this.trains.filter(t => !this.drivers.some(d => d.currentTrain === t.number));
+                
+                if (availableDrivers.length === 0) {
+                    this.showNotification('Nessun macchinista disponibile', 'warning');
+                    return;
+                }
+                
+                if (trainsNeedingDrivers.length === 0) {
+                    this.showNotification('Tutti i treni hanno macchinista assegnato', 'info');
+                    return;
+                }
+                
+                // Simple assignment logic
+                availableDrivers.forEach((driver, index) => {
+                    if (trainsNeedingDrivers[index]) {
+                        this.assignDriverToTrain(driver.id, trainsNeedingDrivers[index]);
+                    }
+                });
+                
+                this.showNotification('Assegnazione automatica completata', 'success');
+                this.updateDashboard();
+            }
+
+            static assignDriverToTrain(driverId, train) {
+                const driver = this.drivers.find(d => d.id === driverId);
+                if (driver && driver.status === 'available') {
+                    driver.status = 'active';
+                    driver.currentTrain = train.number;
+                    driver.route = train.route;
+                    this.showNotification(`${driver.name} assegnato a ${train.number}`, 'success');
+                }
+            }
+
+            static autoAssignToTrain(train) {
+                const availableDriver = this.drivers.find(d => d.status === 'available');
+                if (availableDriver) {
+                    this.assignDriverToTrain(availableDriver.id, train);
+                    this.updateDashboard();
+                } else {
+                    this.showNotification(`Nessun macchinista disponibile per ${train.number}`, 'warning');
+                }
+            }
+
+            static assignTrain(driverId) {
+                const unassignedTrains = this.trains.filter(t => 
+                    !this.drivers.some(d => d.currentTrain === t.number)
+                );
+                
+                if (unassignedTrains.length > 0) {
+                    const train = unassignedTrains[0];
+                    this.assignDriverToTrain(driverId, train);
+                    this.updateDashboard();
+                } else {
+                    this.showNotification('Nessun treno disponibile per assegnazione', 'info');
+                }
+            }
+
+            static startBreak(driverId) {
+                const driver = this.drivers.find(d => d.id === driverId);
+                if (driver) {
+                    driver.status = 'resting';
+                    this.showNotification(`${driver.name} in pausa`, 'info');
+                    this.updateDashboard();
+                }
+            }
+
+            static endBreak(driverId) {
+                const driver = this.drivers.find(d => d.id === driverId);
+                if (driver) {
+                    driver.status = 'available';
+                    driver.currentTrain = null;
+                    driver.route = null;
+                    this.showNotification(`${driver.name} disponibile`, 'success');
+                    this.updateDashboard();
+                }
+            }
+
+            static endShift(driverId) {
+                const driver = this.drivers.find(d => d.id === driverId);
+                if (driver) {
+                    driver.status = 'available';
+                    driver.currentTrain = null;
+                    driver.route = null;
+                    driver.hoursWorked = 0;
+                    this.showNotification(`Turno di ${driver.name} completato`, 'success');
+                    this.updateDashboard();
+                }
+            }
+
+            static showShiftModal() {
+                // Populate driver select
+                const driverSelect = document.getElementById('shiftDriver');
+                driverSelect.innerHTML = '<option value="">Seleziona macchinista...</option>' +
+                    this.drivers.filter(d => d.status === 'available').map(d => 
+                        `<option value="${d.id}">${d.name} (${d.badge})</option>`
+                    ).join('');
+                
+                // Populate train select
+                const trainSelect = document.getElementById('shiftTrain');
+                trainSelect.innerHTML = '<option value="">Seleziona treno...</option>' +
+                    this.trains.map(t => 
+                        `<option value="${t.number}">${t.number} - ${t.route}</option>`
+                    ).join('');
+                
+                document.getElementById('shiftModal').classList.add('active');
+            }
+
+            static hideShiftModal() {
+                document.getElementById('shiftModal').classList.remove('active');
+            }
+
+            static assignShift() {
+                const driverId = document.getElementById('shiftDriver').value;
+                const trainNumber = document.getElementById('shiftTrain').value;
+                
+                if (!driverId || !trainNumber) {
+                    this.showNotification('Seleziona macchinista e treno', 'error');
+                    return;
+                }
+                
+                const driver = this.drivers.find(d => d.id === driverId);
+                const train = this.trains.find(t => t.number === trainNumber);
+                
+                if (driver && train) {
+                    this.assignDriverToTrain(driverId, train);
+                    this.hideShiftModal();
+                    this.updateDashboard();
+                }
+            }
+
+            static showDriverDetails(driverId) {
+                const driver = this.drivers.find(d => d.id === driverId);
+                if (driver) {
+                    const details = `
+                        Macchinista: ${driver.name}
+                        Matricola: ${driver.badge}
+                        Stato: ${driver.status}
+                        Qualifiche: ${driver.qualifications.join(', ')}
+                        Ore lavorate: ${driver.hoursWorked}h
+                        Posizione: ${driver.location}
+                        ${driver.currentTrain ? `Treno attuale: ${driver.currentTrain}` : ''}
+                    `;
+                    this.showNotification(`Dettagli ${driver.name}:\n${details}`, 'info', 8000);
+                }
+            }
+
+            static emergencyProtocol() {
+                if (confirm('Attivare il protocollo di emergenza macchinisti?')) {
+                    // Make all available drivers active
+                    this.drivers.forEach(driver => {
+                        if (driver.status === 'available') {
+                            driver.status = 'active';
+                        }
+                    });
+                    this.showNotification('PROTOCOLLO EMERGENZA ATTIVATO - Tutti i macchinisti in servizio', 'error', 10000);
+                    this.updateDashboard();
+                }
+            }
+
+            static generateReport() {
+                const report = {
+                    timestamp: new Date().toLocaleString(),
+                    totalDrivers: this.drivers.length,
+                    activeDrivers: this.drivers.filter(d => d.status === 'active').length,
+                    availableDrivers: this.drivers.filter(d => d.status === 'available').length,
+                    restingDrivers: this.drivers.filter(d => d.status === 'resting').length,
+                    drivers: this.drivers.map(d => ({
+                        name: d.name,
+                        status: d.status,
+                        currentTrain: d.currentTrain,
+                        hoursWorked: d.hoursWorked
+                    }))
+                };
+                
+                console.log('Report Macchinisti:', report);
+                this.showNotification('Report generato nella console', 'success');
+            }
+
+            static autoRefresh() {
+                // Simulate real-time updates
+                this.drivers.forEach(driver => {
+                    if (driver.status === 'active') {
+                        driver.hoursWorked = Math.min(driver.hoursWorked + 0.1, driver.maxHours);
+                    }
+                });
+                
+                this.updateDashboard();
+            }
+
+            static updateCurrentTime() {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = 
+                    now.toLocaleTimeString('it-IT');
+            }
+
+            static showNotification(message, type = 'info', duration = 5000) {
+                const notification = document.getElementById('vtNotification');
+                notification.textContent = message;
+                notification.className = `vt-notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, duration);
+            }
+        }
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            DriverSystem.initialize();
+        });
+    </script>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
